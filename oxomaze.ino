@@ -13,19 +13,7 @@ Direction directions[] = {UP, LEFT, RIGHT};
 struct Position {
   int x;
   int y;
-  Direction direction;
-
-  Position() {
-    this->x = 0;
-    this->y = 0;
-    this->direction = UP;
-  }
-
-  Position(int x, int y, Direction direction) {
-    this->x = x;
-    this->y = y;
-    this->direction = direction;
-  }
+  
   bool operator==(const Position& a) const {
     return a.x == x && a.y == y;
   }
@@ -40,7 +28,7 @@ bool would_hit_boundary(Direction direction, Position& current_position, int max
   return would_hit_right || would_hit_bottom || would_hit_left;
 }
 
-bool is_legal_move(Path& previous_directions, Direction next_direction) {
+bool is_legal_move(ustd::array<Direction>& previous_directions, Direction next_direction) {
   int path_length = previous_directions.length();
 
   if (path_length < 2) {
@@ -51,14 +39,14 @@ bool is_legal_move(Path& previous_directions, Direction next_direction) {
     return true;
   }
 
-  if (previous_directions.keys[path_length - 1].direction == RIGHT && next_direction == LEFT ||
-      previous_directions.keys[path_length - 1].direction == LEFT && next_direction == RIGHT) {
+  if (previous_directions[path_length - 1] == RIGHT && next_direction == LEFT ||
+      previous_directions[path_length - 1] == LEFT && next_direction == RIGHT) {
     return false;
   }
 
   if ((next_direction == RIGHT || next_direction == LEFT) &&
-      previous_directions.keys[path_length - 1].direction == UP &&
-      previous_directions.keys[path_length - 2].direction != UP) {
+      previous_directions[path_length - 1] == UP &&
+      previous_directions[path_length - 2] != UP) {
     return false;
   }
 
@@ -67,7 +55,6 @@ bool is_legal_move(Path& previous_directions, Direction next_direction) {
 
 Position compute_next_position(Direction next_direction, Position current_position) {
   Position new_position;
-  new_position.direction = next_direction;
   switch (next_direction) {
     case UP:
       new_position.x = current_position.x;
@@ -97,34 +84,25 @@ Direction get_next_direction() {
 Position get_next_position(Position current_position, Path& path, int max_size) {
   Position next_position;
   Direction next_direction;
+  ustd::array<Direction> previous_directions;
   bool illegal, not_unique, outside_boundary;
-  Serial.println("begin get_next_position");
+  
   do {
     next_direction = get_next_direction();
     next_position = compute_next_position(next_direction, current_position);
-    Serial.println("Next direction");
-    Serial.println(next_position.x);
-    Serial.println(next_position.y);
-    illegal = !is_legal_move(path, next_direction);
+    illegal = !is_legal_move(previous_directions, next_direction);
     not_unique = path.find(next_position) != -1;
     outside_boundary = would_hit_boundary(next_direction, current_position, max_size);
-    Serial.print("Illegal: ");
-    Serial.println(illegal);
-    Serial.print("not unique: ");
-    Serial.println(not_unique);
-    Serial.print("Outside boundary: ");
-    Serial.println(outside_boundary);
   } while (illegal || not_unique || outside_boundary);
 
-  Serial.println("return next_position");
+  previous_directions.add(next_direction);
   return next_position;
 }
 
-Path get_random_path(int board_size) {
+Path get_random_path(int board_size, Position current_position) {
   int max_size = board_size - 1;
   Path path;
 
-  Position current_position = {random(max_size), 0, UP};
   path[current_position] = current_position;
 
   do {
@@ -132,7 +110,7 @@ Path get_random_path(int board_size) {
     path[next_position] = next_position;
     current_position = next_position;
   } while (current_position.y != max_size);
-  
+
   return path;
 }
 
@@ -145,14 +123,28 @@ void loop() {
   int board_size = 8;
   Serial.println("");
 
-  Path random_path = get_random_path(board_size);
+  Position start_position = {random(board_size - 1), 0};
+
+  Path random_path = get_random_path(board_size, start_position);
+  Path random_path2 = get_random_path(board_size, start_position);
 
   oxocard.matrix->clearScreen();
-  oxocard.matrix->setForeColor(Random::getColor());
+  oxocard.matrix->setForeColor(rgb(255, 0, 0));
 
-  for (int i = 0; i < random_path.length(); i++ ) {
-    Position step = random_path.keys[i];
-    oxocard.matrix->drawPixel(step.x, step.y);
+  Position player_position = random_path.keys[0];
+  oxocard.matrix->drawPixel(player_position.x, player_position.y);
+
+  oxocard.matrix->setForeColor(rgb(0, 102, 0));
+
+
+  for (int x = 0; x < board_size; x++ ) {
+    for (int y = 0; y < board_size; y++ ) {
+      Position pos = {x, y};
+      if (random_path.find(pos) == -1 && random_path2.find(pos) == -1) {
+        oxocard.matrix->drawPixel(pos.x, pos.y);
+      }
+    }    
   }
+  
   Serial.println("exit");
 }
