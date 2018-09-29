@@ -13,7 +13,7 @@ Direction directions[] = {UP, LEFT, RIGHT};
 struct Position {
   int x;
   int y;
-  
+
   bool operator==(const Position& a) const {
     return a.x == x && a.y == y;
   }
@@ -39,14 +39,17 @@ bool is_legal_move(ustd::array<Direction>& previous_directions, Direction next_d
     return true;
   }
 
-  if (previous_directions[path_length - 1] == RIGHT && next_direction == LEFT ||
-      previous_directions[path_length - 1] == LEFT && next_direction == RIGHT) {
+  Direction last_direction = previous_directions[path_length - 1];
+
+  if (last_direction == RIGHT && next_direction == LEFT ||
+      last_direction == LEFT && next_direction == RIGHT) {
     return false;
   }
 
+  Direction second_last_direction = previous_directions[path_length - 2];
+
   if ((next_direction == RIGHT || next_direction == LEFT) &&
-      previous_directions[path_length - 1] == UP &&
-      previous_directions[path_length - 2] != UP) {
+      last_direction == UP && second_last_direction != UP) {
     return false;
   }
 
@@ -54,24 +57,16 @@ bool is_legal_move(ustd::array<Direction>& previous_directions, Direction next_d
 }
 
 Position compute_next_position(Direction next_direction, Position current_position) {
-  Position new_position;
-  switch (next_direction) {
-    case UP:
-      new_position.x = current_position.x;
-      new_position.y = current_position.y + 1;
-      break;
-    case DOWN:
-      new_position.x = current_position.x;
-      new_position.y = current_position.y - 1;
-      break;
-    case LEFT:
-      new_position.x = current_position.x - 1;
-      new_position.y = current_position.y;
-      break;
-    case RIGHT:
-      new_position.x = current_position.x + 1;
-      new_position.y = current_position.y;
-      break;
+  Position new_position = {current_position.x, current_position.y};
+
+  if (next_direction == UP) {
+    new_position.y = new_position.y + 1;
+  } else if (next_direction == DOWN) {
+    new_position.y = new_position.y - 1;
+  } else if (next_direction == LEFT) {
+    new_position.x = new_position.x - 1;
+  } else if (next_direction == RIGHT) {
+    new_position.x = new_position.x + 1;
   }
 
   return new_position;
@@ -86,7 +81,7 @@ Position get_next_position(Position current_position, Path& path, int max_size) 
   Direction next_direction;
   ustd::array<Direction> previous_directions;
   bool illegal, not_unique, outside_boundary;
-  
+
   do {
     next_direction = get_next_direction();
     next_position = compute_next_position(next_direction, current_position);
@@ -136,15 +131,14 @@ void loop() {
 
   oxocard.matrix->setForeColor(rgb(0, 102, 0));
 
-
   for (int x = 0; x < board_size; x++ ) {
     for (int y = 0; y < board_size; y++ ) {
       Position pos = {x, y};
       if (random_path.find(pos) == -1 && random_path2.find(pos) == -1) {
         oxocard.matrix->drawPixel(pos.x, pos.y);
       }
-    }    
+    }
   }
-  
+
   Serial.println("exit");
 }
