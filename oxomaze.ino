@@ -28,32 +28,32 @@ bool would_hit_boundary(Direction direction, Position& current_position, int max
   return would_hit_right || would_hit_bottom || would_hit_left;
 }
 
-bool is_legal_move(ustd::array<Direction>& previous_directions, Direction next_direction) {
+bool is_illegal_move(ustd::array<Direction>& previous_directions, Direction next_direction) {
   int path_length = previous_directions.length();
 
   if (path_length < 2) {
-    return true;
+    return false;
   }
 
   if (next_direction == UP) {
-    return true;
+    return false;
   }
 
   Direction last_direction = previous_directions[path_length - 1];
 
   if (last_direction == RIGHT && next_direction == LEFT ||
       last_direction == LEFT && next_direction == RIGHT) {
-    return false;
+    return true;
   }
 
   Direction second_last_direction = previous_directions[path_length - 2];
 
   if ((next_direction == RIGHT || next_direction == LEFT) &&
       last_direction == UP && second_last_direction != UP) {
-    return false;
+    return true;
   }
 
-  return true;
+  return false;
 }
 
 Position compute_next_position(Direction next_direction, Position current_position) {
@@ -85,7 +85,7 @@ Position get_next_position(Position current_position, Path& path, int max_size) 
   do {
     next_direction = get_next_direction();
     next_position = compute_next_position(next_direction, current_position);
-    illegal = !is_legal_move(previous_directions, next_direction);
+    illegal = is_illegal_move(previous_directions, next_direction);
     not_unique = path.find(next_position) != -1;
     outside_boundary = would_hit_boundary(next_direction, current_position, max_size);
   } while (illegal || not_unique || outside_boundary);
