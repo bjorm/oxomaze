@@ -14,8 +14,8 @@ struct Position {
   int x;
   int y;
 
-  bool operator==(const Position& a) const {
-    return a.x == x && a.y == y;
+  bool operator==(const Position& position) const {
+    return position.x == x && position.y == y;
   }
 };
 
