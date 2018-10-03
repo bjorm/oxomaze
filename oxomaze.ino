@@ -124,8 +124,6 @@ Direction get_tilt_direction() {
     return RIGHT;
   } else if (orientation == (int)LEFT) {
     return LEFT;
-  } else if (orientation == (int)NEUTRAL) {
-    return NEUTRAL;
   } else {
     return NEUTRAL;
   }
@@ -175,7 +173,7 @@ void loop() {
       player_position = compute_next_position(player_direction, player_position);
       oxocard.matrix->setForeColor(rgb(255, 0, 0));
       oxocard.matrix->drawPixel(player_position.x, player_position.y);
-      
+
       last_millis = current_millis;
     }
   }
