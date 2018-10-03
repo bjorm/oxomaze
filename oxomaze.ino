@@ -1,11 +1,16 @@
 #include "OXOcardRunnerV2.h"
 
-// courtesy of https://github.com/muwerk/ustd
+// Courtesy of https://github.com/muwerk/ustd
 #include <array.h>
 #include <map.h>
 
+// Based on LIS3DE::orientation_t in LIS3DE.h
 enum Direction {
-  UP, DOWN, LEFT, RIGHT
+   NEUTRAL = 1, 
+   UP = 5, 
+   DOWN = 6, 
+   LEFT = 7, 
+   RIGHT = 8
 };
 
 Direction directions[] = {UP, LEFT, RIGHT};
@@ -109,6 +114,23 @@ Path get_random_path(int board_size, Position current_position) {
   return path;
 }
 
+Direction get_tilt_direction() {
+  int8_t orientation = oxocard.accelerometer->getOrientation();
+  if (orientation == (int)UP) {
+    return UP;
+  } else if (orientation == (int)DOWN) {
+    return DOWN;
+  } else if (orientation == (int)RIGHT) {
+    return RIGHT;
+  } else if (orientation == (int)LEFT) {
+    return LEFT;
+  } else if (orientation == (int)NEUTRAL) {
+    return NEUTRAL;
+  } else {
+    return NEUTRAL;
+  }
+}
+
 void setup() {
   Serial.begin(9600);
   randomSeed(analogRead(0));
@@ -137,6 +159,24 @@ void loop() {
       if (random_path.find(pos) == -1 && random_path2.find(pos) == -1) {
         oxocard.matrix->drawPixel(pos.x, pos.y);
       }
+    }
+  }
+
+  const long INTERVAL_MILLIS = 600;
+  unsigned long last_millis = 0;
+  unsigned long current_millis = 0;
+
+  while (true) {
+    current_millis = millis();
+
+    if (current_millis - last_millis > INTERVAL_MILLIS) {
+      Direction player_direction = get_tilt_direction();
+      oxocard.matrix->clearPixel(player_position.x, player_position.y);
+      player_position = compute_next_position(player_direction, player_position);
+      oxocard.matrix->setForeColor(rgb(255, 0, 0));
+      oxocard.matrix->drawPixel(player_position.x, player_position.y);
+      
+      last_millis = current_millis;
     }
   }
 
