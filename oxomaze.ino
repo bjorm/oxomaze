@@ -138,6 +138,11 @@ Position move_player(Position current_position, Direction direction) {
   return new_position;
 }
 
+bool hits_wall(Position position) {
+  rgbColor_t color = oxocard.matrix->readPixel(position.x, position.y);
+  return color.r == GREEN.r && color.g == GREEN.g && color.b == GREEN.b;
+}
+
 void setup() {
   Serial.begin(9600);
   randomSeed(analogRead(0));
@@ -175,6 +180,22 @@ void loop() {
 
     if (current_millis - last_millis > INTERVAL_MILLIS) {
       Direction player_direction = get_tilt_direction();
+      Position next_position = compute_next_position(player_direction, player_position);
+
+      if (hits_wall(next_position)) {
+        oxocard.matrix->clearScreen();
+        oxocard.matrix->drawCharBigFont('X', 2, 0, RED);
+        delay(2000);
+        break;
+      }
+
+      if (next_position.y == board_size) {
+        oxocard.matrix->clearScreen();
+        oxocard.matrix->drawCharBigFont('V', 2, 0, GREEN);
+        delay(2000);
+        break;
+      }
+
       player_position = move_player(player_position, player_direction);
 
       last_millis = current_millis;
