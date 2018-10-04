@@ -6,14 +6,16 @@
 
 // Based on LIS3DE::orientation_t in LIS3DE.h
 enum Direction {
-   NEUTRAL = 1, 
-   UP = 5, 
-   DOWN = 6, 
-   LEFT = 7, 
-   RIGHT = 8
+  NEUTRAL = 1,
+  UP = 5,
+  DOWN = 6,
+  LEFT = 7,
+  RIGHT = 8
 };
 
 Direction directions[] = {UP, LEFT, RIGHT};
+rgbColor_t RED = rgb(255, 0, 0);
+rgbColor_t GREEN = rgb(0, 102, 0);
 
 struct Position {
   int x;
@@ -129,6 +131,13 @@ Direction get_tilt_direction() {
   }
 }
 
+Position move_player(Position current_position, Direction direction) {
+  oxocard.matrix->clearPixel(current_position.x, current_position.y);
+  Position new_position = compute_next_position(direction, current_position);
+  oxocard.matrix->drawPixel(new_position.x, new_position.y, RED);
+  return new_position;
+}
+
 void setup() {
   Serial.begin(9600);
   randomSeed(analogRead(0));
@@ -144,18 +153,15 @@ void loop() {
   Path random_path2 = get_random_path(board_size, start_position);
 
   oxocard.matrix->clearScreen();
-  oxocard.matrix->setForeColor(rgb(255, 0, 0));
 
   Position player_position = random_path.keys[0];
-  oxocard.matrix->drawPixel(player_position.x, player_position.y);
-
-  oxocard.matrix->setForeColor(rgb(0, 102, 0));
+  move_player(player_position, NEUTRAL);
 
   for (int x = 0; x < board_size; x++ ) {
     for (int y = 0; y < board_size; y++ ) {
       Position pos = {x, y};
       if (random_path.find(pos) == -1 && random_path2.find(pos) == -1) {
-        oxocard.matrix->drawPixel(pos.x, pos.y);
+        oxocard.matrix->drawPixel(pos.x, pos.y, GREEN);
       }
     }
   }
@@ -169,10 +175,7 @@ void loop() {
 
     if (current_millis - last_millis > INTERVAL_MILLIS) {
       Direction player_direction = get_tilt_direction();
-      oxocard.matrix->clearPixel(player_position.x, player_position.y);
-      player_position = compute_next_position(player_direction, player_position);
-      oxocard.matrix->setForeColor(rgb(255, 0, 0));
-      oxocard.matrix->drawPixel(player_position.x, player_position.y);
+      player_position = move_player(player_position, player_direction);
 
       last_millis = current_millis;
     }
