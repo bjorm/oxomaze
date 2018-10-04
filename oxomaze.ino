@@ -7,8 +7,8 @@
 // Based on LIS3DE::orientation_t in LIS3DE.h
 enum Direction {
   NEUTRAL = 1,
-  UP = 5,
-  DOWN = 6,
+  UP = 6,
+  DOWN = 5,
   LEFT = 7,
   RIGHT = 8
 };
