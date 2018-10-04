@@ -1,5 +1,8 @@
 # oxomaze
-# How to run
+A very basic game for the [Oxocard V2](https://oxocard.ch/) where you have to get through a random maze 
+by tilting your Oxocard.
+
+## How to run
 1. Install [Arduino IDE](https://github.com/arduino/Arduino/#installation)
 2. Install [Oxocard V2 Arduino integration](https://github.com/oxon/dingg_OXOcardV2_Arduino_integration)
 3. Install [ustd](https://github.com/muwerk/ustd) via Arduino IDE Library manager
